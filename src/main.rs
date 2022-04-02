@@ -42,7 +42,7 @@ struct Config {
     mongodb_connection_string: String
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct InsertStruct {
     #[serde(rename = "_id")]
     id: bson::oid::ObjectId,
@@ -176,6 +176,107 @@ impl EventHandler for Handler {
                     
                     let search_bson = bson::to_bson(&search_struct).unwrap();
                     let search_docs = bson::from_bson::<Document>(search_bson).unwrap();
+                    let room_collection = mongodb_client.database("doxabot").collection::<Document>("room_data");
+                    let mut room_datas = vec![];
+                    let results = match collection.find(search_docs, None).await {
+                        Ok(mut cursor) => {
+                            let mut search_datas = vec![];
+                            let results = cursor.try_next().await;
+                            match results {
+                                Ok(_) => {
+                                    while let Some(doc) = cursor.try_next().await.unwrap() {
+                                        search_datas.push(bson::from_bson::<InsertStruct>(Bson::Document(doc)).unwrap())
+                                    }
+                                    for st in &search_datas {
+                                        let room_search_struct = RoomSearchStruct {
+                                            room_id: st.room_id.clone()
+                                        };
+                                        let room_search_bson = bson::to_bson(&room_search_struct).unwrap();
+                                        let room_search_docs = bson::from_bson::<Document>(room_search_bson).unwrap();
+                                        let room_result = match room_collection.find_one(room_search_docs, None).await {
+                                            Ok(res) => res,
+                                            Err(_) => None
+                                        };
+                                        match room_result {
+                                            None => {},
+                                            _ => {
+                                                room_datas.push(bson::from_bson::<RoomInsertStruct>(Bson::Document(room_result.unwrap())).unwrap());
+                                            }
+                                        };
+                                        drop(room_search_struct);
+                                    }
+                                    drop(search_datas);
+                                },
+                                Err(_) => {}
+                            }
+                            let mut embeds = vec![];
+                            for (i, i2) in room_datas.iter().enumerate() {
+                                if i % 2 == 0 {
+                                    embeds.push((i2.name.clone(), i2.room_id.clone(), true));
+                                } else {
+                                    embeds.push((format!("방 이름: {}", i2.name.clone()), format!("방 아이디: {}", i2.room_id.clone()), false));
+                                }
+                            };
+                            drop(results);
+                            interaction.application_command().unwrap().create_interaction_response(&ctx.http, |response| {
+                                response
+                                    .interaction_response_data(|d| {
+                                        d.flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL);
+                                        d.create_embed(|e| {
+                                            e.title("그 유저가 들어간 방 리스트")
+                                                .fields(embeds)
+                                        })
+                                    })
+                                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                            }).await
+                        },
+                        Err(_) => {
+                            drop(room_collection);
+                            interaction.application_command().unwrap().create_interaction_response(&ctx.http, |response| {
+                                response
+                                    .interaction_response_data(|d| {
+                                        d.flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL);
+                                        d.content("그 유저의 데이터를 찾을 수 없어요.")
+                                    })
+                                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                            }).await
+                        }
+                    };
+                    results
+                },
+                "create_room" => {
+                    let mongodb_connection_string = read_user_from_file("config.json").unwrap().mongodb_connection_string;
+                    let mut mongodb_client_options = ClientOptions::parse(mongodb_connection_string).await.unwrap();
+                    mongodb_client_options.app_name = Some("doxa-bot".to_string());
+                    let mongodb_client = MongoClient::with_options(mongodb_client_options).unwrap();
+
+                    let collection = mongodb_client.database("doxabot").collection::<Document>("data");
+
+                    let options = command
+                        .data
+                        .options
+                        .get(0)
+                        .expect("Expected user option")
+                        .resolved
+                        .as_ref()
+                        .expect("Expected user object");
+
+                    let user = &command.user;
+                    let user_id: u64;
+
+                    if let ApplicationCommandInteractionDataOptionValue::User(userarg, _) =
+                        options
+                    {
+                        user_id = userarg.id.0;
+                    } else {
+                        user_id = user.id.0;
+                    }
+                    let search_struct = SearchStruct {
+                        discord_id: user_id
+                    };
+                    
+                    let search_bson = bson::to_bson(&search_struct).unwrap();
+                    let search_docs = bson::from_bson::<Document>(search_bson).unwrap();
                     let results = match collection.find(search_docs, None).await {
                         Ok(mut cursor) => {
                             let mut search_datas = vec![];
@@ -209,7 +310,7 @@ impl EventHandler for Handler {
                         }
                     };
                     results
-                },
+                }
                 _ => {
                     interaction.application_command().unwrap().create_interaction_response(&ctx.http, |response| {
                         response
