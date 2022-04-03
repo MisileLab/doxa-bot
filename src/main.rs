@@ -1,3 +1,5 @@
+extern crate utility;
+
 use serenity::{
     async_trait,
     model::{
@@ -32,6 +34,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 use std::mem::drop;
+
+use utility::mongoutil;
 
 struct Handler;
 
@@ -193,6 +197,9 @@ impl EventHandler for Handler {
                                         };
                                         let room_search_bson = bson::to_bson(&room_search_struct).unwrap();
                                         let room_search_docs = bson::from_bson::<Document>(room_search_bson).unwrap();
+
+                                       let room_search_docs2 = mongoutil::bson2docs(&room_search_struct);
+
                                         let room_result = match room_collection.find_one(room_search_docs, None).await {
                                             Ok(res) => res,
                                             Err(_) => None
