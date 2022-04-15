@@ -22,3 +22,8 @@ rand = "0.8"
 futures = "0.3.21"
 poise = { git = "https://github.com/kangalioo/poise", branch = "develop" }
 utility = { git = "https://github.com/misilelab/UsefulSerenity", package = "useful-serenity"}
+
+[dependencies.serenity]
+default-features = false
+features = ["builder", "cache", "client", "gateway", "model", "utils", "collector", "chrono"]
+git = "https://github.com/serenity-rs/serenity"
