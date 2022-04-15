@@ -20,5 +20,5 @@ tokio = { version = "1.17.0", features = ["full"] }
 sha3 = "0.10"
 rand = "0.8"
 futures = "0.3.21"
-poise = { git = "https://github.com/kangalioo/poise" }
+poise = { git = "https://github.com/kangalioo/poise", branch = "develop" }
 utility = { git = "https://github.com/misilelab/UsefulSerenity", package = "useful-serenity"}

@@ -26,7 +26,7 @@ use std::mem::drop;
 use std::string::String;
 use std::error::Error as stderror;
 
-use utility::mongoutil;
+use utility::*;
 
 #[derive(Deserialize, Debug)]
 struct Config {
@@ -89,15 +89,6 @@ fn read_user_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn stderr
 
     Ok(c)
 }
-
-/// Vec<(content: String, description: String, inline: bool)>
-fn embed_converter(embeds: Vec<(String, String, bool)>) -> serenity::CreateEmbed {
-    let mut embed = serenity::CreateEmbed::default();
-    embed.fields(embeds);
-    return embed;
-}
-
-
 
 /// 특정 유저가 무슨 방을 들어갔는지 알 수 있는 명령어
 #[poise::command(slash_command)]
@@ -166,7 +157,7 @@ async fn user(
             };
             drop(results);
             ctx.send(|f| {
-                f.embeds.push(embed_converter(embeds));
+                f.embeds.push(serenityutil::add_fields(embeds));
                 f
             }).await?;
         },
@@ -208,9 +199,8 @@ async fn create_room(
     let user_id = ctx.author().id.0;
     
     let mut hasher = Sha3_512::new();
-    let mut rng = rand::thread_rng();
-    let hash_salt: u32 = rng.gen_range(1..4294967295);
-    hasher.update(hash_salt.to_string());
+    let rng: u32 = rand::thread_rng().gen_range(1..4294967295);
+    hasher.update(rng.to_string());
     let room_id = std::str::from_utf8(&hasher.finalize()).unwrap().to_string();
     let mut insert_struct = RoomInsertStruct {
         id: bson::oid::ObjectId::new(),
@@ -220,26 +210,21 @@ async fn create_room(
         category: category.unwrap_or("".to_string()),
         room_id: room_id.clone()
     };
-    let insert_docs = mongoutil::bson_to_docs(&insert_struct);
     let mut verify = false;
     while verify == false {
-        let mut search_struct = RoomSearchStruct {
-            room_id: room_id.clone()
+        let search_struct = RoomSearchStruct {
+            room_id: insert_struct.room_id.clone()
         };
         let search_docs = mongoutil::bson_to_docs(&search_struct);
         let result = collection.find_one(search_docs.clone(), None).await.unwrap();
         match result {
-            None => {
-                verify = true;
-                break;
-            },
+            None => verify = true,
             Some(_) => {
                 let mut hasher = Sha3_512::new();
                 let mut rng = rand::thread_rng();
                 let hash_salt: u32 = rng.gen_range(1..4294967295);
                 hasher.update(hash_salt.to_string());
                 let hashervalue = std::str::from_utf8(&hasher.finalize()).unwrap().to_string();
-                search_struct.room_id = (&hashervalue).to_string();
                 insert_struct.room_id = (&hashervalue).to_string();
                 drop(hashervalue);
             }
@@ -248,7 +233,12 @@ async fn create_room(
         drop(search_struct);
         drop(search_docs);
     }
-    let returnvalue = "등록이 되었어요.".to_string();
+    let returnvalue: String;
+    let insert_docs = mongoutil::bson_to_docs(&insert_struct);
+    match collection.insert_one(insert_docs, None).await {
+        Ok(_) => { returnvalue = "방이 만들어졌어요.".to_string() },
+        Err(_) => { returnvalue = "제대로 만들어지지 않은 것 같아요.".to_string() }
+    };
     drop(insert_struct);
     
     ctx.send(|f| f
