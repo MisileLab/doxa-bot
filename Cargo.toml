@@ -17,13 +17,6 @@ serde = "1.0"
 mongodb = "2.2.0"
 chrono = "0.4"
 tokio = { version = "1.17.0", features = ["full"] }
-sha3 = "0.10"
-rand = "0.8"
 futures = "0.3.21"
 poise = { git = "https://github.com/kangalioo/poise", branch = "develop" }
-utility = { git = "https://github.com/misilelab/UsefulSerenity", package = "useful-serenity"}
-
-[dependencies.serenity]
-default-features = false
-features = ["builder", "cache", "client", "gateway", "model", "utils", "collector", "chrono"]
-git = "https://github.com/serenity-rs/serenity"
+utility = { git = "https://github.com/misilelab/UsefulSerenity", package = "useful-serenity" }

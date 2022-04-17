@@ -137,16 +137,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "command_attr"
-version = "0.3.8"
-source = "git+https://github.com/serenity-rs/serenity?branch=next#2bb9a01bfccd0485ccb7e9f20cce8edff7426eb3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -292,10 +282,8 @@ dependencies = [
  "futures",
  "mongodb",
  "poise",
- "rand",
  "serde",
  "serde_json",
- "sha3",
  "tokio",
  "useful-serenity",
 ]
@@ -637,9 +625,9 @@ dependencies = [
 
 [[package]]
 name = "ipnet"
-version = "2.4.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35e70ee094dc02fd9c13fdad4940090f22dbd6ac7c9e7094a46cf0232a50bc7c"
+checksum = "879d54834c8c76457ef4293a689b2a8c59b076067ad77b15efafbb05f92a592b"
 
 [[package]]
 name = "itoa"
@@ -657,22 +645,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "keccak"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67c21572b4949434e4fc1e1978b99c5f77064153c59d998bf13ecd96fb5ecba7"
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
-
-[[package]]
-name = "levenshtein"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db13adb97ab515a3691f56e4dbab09283d0b86cb45abd991d8634a9d6f501760"
 
 [[package]]
 name = "libc"
@@ -961,7 +937,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "poise"
 version = "0.1.0"
-source = "git+https://github.com/kangalioo/poise?branch=develop#71079fa0345d11214aa9850a3580569f56fb29af"
+source = "git+https://github.com/kangalioo/poise?branch=develop#95272a41730505ff760772a5681326923067776c"
 dependencies = [
  "async-trait",
  "derivative",
@@ -978,7 +954,7 @@ dependencies = [
 [[package]]
 name = "poise_macros"
 version = "0.1.0"
-source = "git+https://github.com/kangalioo/poise?branch=develop#71079fa0345d11214aa9850a3580569f56fb29af"
+source = "git+https://github.com/kangalioo/poise?branch=develop#95272a41730505ff760772a5681326923067776c"
 dependencies = [
  "darling 0.12.4",
  "proc-macro2",
@@ -1307,7 +1283,7 @@ dependencies = [
 [[package]]
 name = "serenity"
 version = "0.10.10"
-source = "git+https://github.com/serenity-rs/serenity?branch=next#2bb9a01bfccd0485ccb7e9f20cce8edff7426eb3"
+source = "git+https://github.com/serenity-rs/serenity?rev=2bb9a01bfccd0485ccb7e9f20cce8edff7426eb3#2bb9a01bfccd0485ccb7e9f20cce8edff7426eb3"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -1316,11 +1292,9 @@ dependencies = [
  "bytes",
  "cfg-if",
  "chrono",
- "command_attr",
  "dashmap",
  "flate2",
  "futures",
- "levenshtein",
  "mime",
  "mime_guess",
  "parking_lot",
@@ -1329,13 +1303,11 @@ dependencies = [
  "serde",
  "serde-value",
  "serde_json",
- "static_assertions",
  "time 0.3.9",
  "tokio",
  "tracing",
  "typemap_rev",
  "url",
- "uwl",
 ]
 
 [[package]]
@@ -1358,16 +1330,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "sha3"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "881bf8156c87b6301fc5ca6b27f11eeb2761224c7081e69b409d5a1951a70c86"
-dependencies = [
- "digest",
- "keccak",
 ]
 
 [[package]]
@@ -1406,12 +1368,6 @@ name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "stringprep"
@@ -1765,11 +1721,11 @@ dependencies = [
 [[package]]
 name = "useful-serenity"
 version = "0.1.4"
-source = "git+https://github.com/misilelab/UsefulSerenity#acce43d3520258aec983cf408196fada1d546d1a"
+source = "git+https://github.com/misilelab/UsefulSerenity#9c19129549e01c2fe8dc90329f658194150d4d56"
 dependencies = [
  "mongodb",
+ "poise",
  "serde",
- "serenity",
 ]
 
 [[package]]
@@ -1787,12 +1743,6 @@ dependencies = [
  "getrandom",
  "serde",
 ]
-
-[[package]]
-name = "uwl"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4bf03e0ca70d626ecc4ba6b0763b934b6f2976e8c744088bb3c1d646fbb1ad0"
 
 [[package]]
 name = "version_check"
