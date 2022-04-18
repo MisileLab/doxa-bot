@@ -13,6 +13,7 @@ use std::string::String;
 use std::error::Error as stderror;
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub struct Config {
     pub token: String,
     mongodb_connection_string: String

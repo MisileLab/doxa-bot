@@ -44,51 +44,44 @@ pub async fn user(
     match collection.find(search_docs, None).await {
         Ok(mut cursor) => {
             let mut search_datas = vec![];
-            let results = cursor.try_next().await;
-            match results {
-                Ok(_) => {
-                    while let Some(doc) = cursor.try_next().await.unwrap() {
-                        search_datas.push(bson::from_bson::<InsertStruct>(Bson::Document(doc)).unwrap())
-                    }
-                    for st in &search_datas {
-                        let room_search_struct = RoomSearchStruct {
-                            room_id: st.room_id.clone()
-                        };
+            while let Some(docu) = cursor.try_next().await.unwrap() {
+                search_datas.push(bson::from_bson::<InsertStruct>(Bson::Document(docu)).unwrap())
+            }
+            for st in &search_datas {
+                let room_search_struct = RoomSearchStruct {
+                    room_id: st.room_id.clone()
+                };
 
-                        let room_search_docs = mongoutil::bson_to_docs(&room_search_struct);
+                let room_search_docs = mongoutil::bson_to_docs(&room_search_struct);
 
-                        let room_result = match room_collection.find_one(room_search_docs, None).await {
-                            Ok(res) => res,
-                            Err(_) => None
-                        };
-                        match room_result {
-                            None => {},
-                            _ => {
-                                room_datas.push(bson::from_bson::<RoomInsertStruct>(Bson::Document(room_result.unwrap())).unwrap());
-                            }
-                        };
-                        drop(room_search_struct);
+                let room_result = match room_collection.find_one(room_search_docs, None).await {
+                    Ok(res) => res,
+                    Err(_) => None
+                };
+                match room_result {
+                    None => {},
+                    _ => {
+                        room_datas.push(bson::from_bson::<RoomInsertStruct>(Bson::Document(room_result.unwrap())).unwrap());
                     }
-                    drop(search_datas);
-                },
-                Err(_) => {}
+                };
+                drop(room_search_struct);
             }
             let mut embeds = vec![];
-            for (i, i2) in room_datas.iter().enumerate() {
+            for (i, i2) in search_datas.iter().enumerate() {
                 let inline: bool;
                 if i % 2 == 0 {
                     inline = false;
                 } else {
                     inline = true;
                 }
-                embeds.push((format!("방 이름: {}", i2.name.clone()), format!("방 이름: {}", i2.room_id.clone()), inline));
-
+                embeds.push((format!("방 이름: {}", room_datas[i].name.clone()), format!("방 아이디: {}", i2.room_id.clone()), inline));
             };
-            drop(results);
+            drop(search_datas);
+
             ctx.send(|f| {
-                let mut embed = serenityutil::add_fields(embeds);
-                embed.title("");
-                embed.description("");
+                let mut embed = serenityutil::add_fields(embeds.clone());
+                embed.title(format!("{}님의 데이터", ctx.author().name));
+                embed.description(format!("{:?}개의 데이터가 있습니다.", embeds.len()));
                 f.embeds.push(embed);
                 f
             }).await?;
