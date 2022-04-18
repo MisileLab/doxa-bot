@@ -23,8 +23,7 @@ pub async fn get_mongodb_tools() -> MongoClient {
     let mongodb_connection_string = read_user_from_file("config.json").unwrap().mongodb_connection_string;
     let mut mongodb_client_options = ClientOptions::parse(mongodb_connection_string).await.unwrap();
     mongodb_client_options.app_name = Some("doxa-bot".to_string());
-    let mongodb_client = MongoClient::with_options(mongodb_client_options).unwrap();
-    return mongodb_client;
+    MongoClient::with_options(mongodb_client_options).unwrap()
 }
 
 pub fn read_user_from_file<P: AsRef<Path>>(path: P) -> Result<Config, Box<dyn stderror>> {

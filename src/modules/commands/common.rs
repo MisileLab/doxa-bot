@@ -32,7 +32,7 @@ pub async fn user(
 
     let collection = mongodb_client.database("doxabot").collection::<Document>("data");
 
-    let usera = user.as_ref().unwrap_or(ctx.author());
+    let usera = user.as_ref().unwrap_or_else(|| ctx.author());
     let search_struct = SearchStruct {
         discord_id: usera.id.0,
         room_id: None
@@ -49,7 +49,7 @@ pub async fn user(
             }
             for st in &search_datas {
                 let room_search_struct = RoomSearchStruct {
-                    room_id: st.room_id.clone()
+                    room_id: st.room_id
                 };
 
                 let room_search_docs = mongoutil::bson_to_docs(&room_search_struct);
@@ -68,19 +68,14 @@ pub async fn user(
             }
             let mut embeds = vec![];
             for (i, i2) in search_datas.iter().enumerate() {
-                let inline: bool;
-                if i % 2 == 0 {
-                    inline = false;
-                } else {
-                    inline = true;
-                }
+                let inline  = i % 2 != 0;
                 embeds.push((format!("방 이름: {}", room_datas[i].name.clone()), format!("방 아이디: {}", i2.room_id.clone()), inline));
             };
             drop(search_datas);
 
             ctx.send(|f| {
                 let mut embed = serenityutil::add_fields(embeds.clone());
-                embed.title(format!("{}님의 데이터", ctx.author().name));
+                embed.title(format!("{}님의 데이터", usera.name));
                 embed.description(format!("{:?}개의 데이터가 있습니다.", embeds.len()));
                 f.embeds.push(embed);
                 f
@@ -97,9 +92,8 @@ pub async fn user(
     Ok(())
 }
 
-#[allow(unused_variables)]
 #[poise::command(slash_command)]
-pub async fn room(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn room(_: Context<'_>) -> Result<(), Error> {
     // this is empty, because it is a parent slash command.
     Ok(())
 }
@@ -123,35 +117,34 @@ pub async fn create_room(
     let mut room_id: u64 = 0;
     let mut insert_struct = RoomInsertStruct {
         id: bson::oid::ObjectId::new(),
-        name: name,
+        name,
         creator_id: user_id,
-        description: description.unwrap_or("".to_string()),
-        category: category.unwrap_or("".to_string()),
+        description: description.unwrap_or_else(|| "".to_string()),
+        category: category.unwrap_or_else(|| "".to_string()),
         room_id
     };
     let mut verify = false;
-    while verify == false {
+    while !verify {
         let search_struct = RoomSearchStruct {
-            room_id: insert_struct.room_id.clone()
+            room_id: insert_struct.room_id
         };
         let search_docs = mongoutil::bson_to_docs(&search_struct);
         let result = collection.find_one(search_docs.clone(), None).await.unwrap();
         match result {
             None => verify = true,
             Some(_) => {
-                room_id = room_id + 1;
-                insert_struct.room_id = room_id.clone();
+                room_id += 1;
+                insert_struct.room_id = room_id;
             }
         }
         drop(result);
         drop(search_struct);
         drop(search_docs);
     }
-    let returnvalue: String;
     let insert_docs = mongoutil::bson_to_docs(&insert_struct);
-    match collection.insert_one(insert_docs, None).await {
-        Ok(_) => { returnvalue = "방이 만들어졌어요.".to_string() },
-        Err(_) => { returnvalue = "제대로 만들어지지 않은 것 같아요.".to_string() }
+    let returnvalue = match collection.insert_one(insert_docs, None).await {
+        Ok(_) => { "방이 만들어졌어요.".to_string() },
+        Err(_) => { "제대로 만들어지지 않은 것 같아요.".to_string() }
     };
     drop(insert_struct);
     
@@ -178,7 +171,7 @@ pub async fn join_room(
     let user_id = ctx.author().id.0;
     let insert_struct = InsertStruct {
         id: bson::oid::ObjectId::new(),
-        discord_id: user_id.clone(),
+        discord_id: user_id,
         name: nickname,
         room_id: roomid
     };
