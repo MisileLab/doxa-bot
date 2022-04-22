@@ -1,7 +1,6 @@
 extern crate utility;
 
-use mongodb::bson::doc;
-use mongodb::bson;
+use mongodb::bson::{self, doc};
 
 use serde::{Deserialize, Serialize};
 

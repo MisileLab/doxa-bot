@@ -1,16 +1,20 @@
 extern crate utility;
 
-use poise::serenity_prelude as serenity;
-use poise::serenity_prelude::futures::TryStreamExt;
+use poise::serenity_prelude::{
+    self as serenity,
+    futures::TryStreamExt
+};
 
-use mongodb::bson::doc;
-use mongodb::bson;
-use mongodb::bson::Bson;
+use mongodb::{
+    bson::{
+        self,
+        doc,
+        Bson,
+        Document
+    }
+};
 
-use bson::Document;
-
-use std::mem::drop;
-use std::string::String;
+use std::{mem::drop, string::String};
 
 use utility::*;
 
@@ -68,7 +72,7 @@ pub async fn user(
             }
             let mut embeds = vec![];
             for (i, i2) in search_datas.iter().enumerate() {
-                let inline  = i % 2 != 0;
+                let inline = i % 2 != 0;
                 embeds.push((format!("방 이름: {}", room_datas[i].name.clone()), format!("방 아이디: {}", i2.room_id.clone()), inline));
             };
             drop(search_datas);
@@ -204,6 +208,55 @@ pub async fn join_room(
 
     drop(search_struct);
     drop(insert_struct);
+    drop(room_search_struct);
+    
+    ctx.send(|f| f
+        .content(returnvalue)
+        .ephemeral(true)
+    ).await?;
+
+    Ok(())
+}
+
+/// 방을 나가는 명령어입니다.
+#[poise::command(slash_command, rename = "exit")]
+pub async fn exit_room(
+    ctx: Context<'_>,
+    #[description = "나갈 방 아이디"]
+    room_id: u64
+) -> Result<(), Error> {
+    let mongodb_client = get_mongodb_tools().await;
+
+    let collection = mongodb_client.database("doxabot").collection::<Document>("data");
+    let room_collection = mongodb_client.database("doxabot").collection::<Document>("room_data");
+    let user_id = ctx.author().id.0;
+    let search_struct = SearchStruct {
+        discord_id: user_id,
+        room_id: Some(room_id)
+    };
+    let room_search_struct = RoomSearchStruct { room_id };
+
+    let search_docs = mongoutil::bson_to_docs(&search_struct);
+    let room_search_docs = mongoutil::bson_to_docs(&room_search_struct);
+    let user_data = collection.find_one(search_docs, None).await.unwrap();
+    let returnvalue: String;
+
+    match room_collection.find_one(room_search_docs, None).await.unwrap_or(None) {
+        Some(_) => {
+            match user_data {
+                None => { returnvalue = "아직 등록이 안 되어 있는 것 같아요.".to_string() },
+                Some(docs) => {
+                    match collection.find_one_and_delete(docs, None).await {
+                        Ok(_) => { returnvalue = "방에 나가는데 성공했어요!".to_string(); },
+                        Err(_) => { returnvalue = "뭔가 잘못된 것 같아요.".to_string() }
+                    }
+                }
+            }
+        },
+        None => { returnvalue = "그런 아이디를 가진 방은 없는 것 같아요.".to_string() }
+    };
+
+    drop(search_struct);
     drop(room_search_struct);
     
     ctx.send(|f| f

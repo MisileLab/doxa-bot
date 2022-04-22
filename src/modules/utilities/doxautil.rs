@@ -1,19 +1,21 @@
 extern crate utility;
 
-use mongodb::{Client as MongoClient, options::ClientOptions};
-use mongodb::bson::doc;
+use mongodb::{
+    Client as MongoClient, 
+    options::ClientOptions,
+    bson::doc
+};
 
 use serde::{Deserialize};
-
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
-
-use std::string::String;
-use std::error::Error as stderror;
+use std::{
+    fs::File,
+    io::BufReader,
+    path::Path,
+    string::String,
+    error::Error as stderror
+};
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct Config {
     pub token: String,
     mongodb_connection_string: String
