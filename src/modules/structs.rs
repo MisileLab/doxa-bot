@@ -37,3 +37,10 @@ pub struct RoomInsertStruct {
 pub struct RoomSearchStruct {
     pub room_id: u64
 }
+
+#[derive(Serialize)]
+pub struct Streamer {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<bson::oid::ObjectId>,
+    pub user_id: u64
+}

@@ -114,49 +114,68 @@ pub async fn create_room(
     category: Option<String>
 ) -> Result<(), Error> {
     let mongodb_client = get_mongodb_tools().await;
-    let collection = mongodb_client.database("doxabot").collection::<Document>("room_data");
+    let database = mongodb_client.database("doxabot");
+    let collection = database.collection::<Document>("room_data");
+    let streamer_collection = database.collection::<Document>("streamer_data");
 
     let user_id = ctx.author().id.0;
-    
-    let mut room_id: u64 = 0;
-    let mut insert_struct = RoomInsertStruct {
-        id: bson::oid::ObjectId::new(),
-        name,
-        creator_id: user_id,
-        description: description.unwrap_or_else(|| "".to_string()),
-        category: category.unwrap_or_else(|| "".to_string()),
-        room_id
+
+    let streamer_search_struct = Streamer {
+        id: None,
+        user_id
     };
-    let mut verify = false;
-    while !verify {
-        let search_struct = RoomSearchStruct {
-            room_id: insert_struct.room_id
-        };
-        let search_docs = mongoutil::bson_to_docs(&search_struct);
-        let result = collection.find_one(search_docs.clone(), None).await.unwrap();
-        match result {
-            None => verify = true,
-            Some(_) => {
-                room_id += 1;
-                insert_struct.room_id = room_id;
+
+    match streamer_collection.find_one(mongoutil::bson_to_docs(&streamer_search_struct), None).await.unwrap() {
+        None => {
+            ctx.send(|f| f
+                .content("스트리머가 아닌 것 같아요.")
+                .ephemeral(true)
+            ).await?;
+            Ok(())
+        },
+        Some(_) => {
+            let mut room_id: u64 = 0;
+            let mut insert_struct = RoomInsertStruct {
+                id: bson::oid::ObjectId::new(),
+                name,
+                creator_id: user_id,
+                description: description.unwrap_or_else(|| "".to_string()),
+                category: category.unwrap_or_else(|| "".to_string()),
+                room_id
+            };
+            let mut verify = false;
+            while !verify {
+                let search_struct = RoomSearchStruct {
+                    room_id: insert_struct.room_id
+                };
+                let search_docs = mongoutil::bson_to_docs(&search_struct);
+                let result = collection.find_one(search_docs.clone(), None).await.unwrap();
+                match result {
+                    None => verify = true,
+                    Some(_) => {
+                        room_id += 1;
+                        insert_struct.room_id = room_id;
+                    }
+                }
+                drop(result);
+                drop(search_struct);
+                drop(search_docs);
             }
+            let insert_docs = mongoutil::bson_to_docs(&insert_struct);
+            let returnvalue = match collection.insert_one(insert_docs, None).await {
+                Ok(_) => { "방이 만들어졌어요.".to_string() },
+                Err(_) => { "제대로 만들어지지 않은 것 같아요.".to_string() }
+            };
+            drop(insert_struct);
+            drop(streamer_search_struct);
+            
+            ctx.send(|f| f
+                .content(returnvalue)
+                .ephemeral(true)
+            ).await?;
+            Ok(())
         }
-        drop(result);
-        drop(search_struct);
-        drop(search_docs);
     }
-    let insert_docs = mongoutil::bson_to_docs(&insert_struct);
-    let returnvalue = match collection.insert_one(insert_docs, None).await {
-        Ok(_) => { "방이 만들어졌어요.".to_string() },
-        Err(_) => { "제대로 만들어지지 않은 것 같아요.".to_string() }
-    };
-    drop(insert_struct);
-    
-    ctx.send(|f| f
-        .content(returnvalue)
-        .ephemeral(true)
-    ).await?;
-    Ok(())
 }
 
 /// 방에 들어갈 수 있는 명령어
@@ -218,7 +237,7 @@ pub async fn join_room(
     Ok(())
 }
 
-/// 방을 나가는 명령어입니다.
+/// 방을 나가는 명령어
 #[poise::command(slash_command, rename = "exit")]
 pub async fn exit_room(
     ctx: Context<'_>,

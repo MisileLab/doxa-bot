@@ -25,3 +25,5 @@ run binary!
 
 - doxa-bot
   - data
+  - room_data
+  - streamer_data
