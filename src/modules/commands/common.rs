@@ -189,8 +189,9 @@ pub async fn join_room(
 ) -> Result<(), Error>{
     let mongodb_client = get_mongodb_tools().await;
 
-    let collection = mongodb_client.database("doxabot").collection("data");
-    let room_collection = mongodb_client.database("doxabot").collection::<Document>("room_data");
+    let database = mongodb_client.database("doxabot");
+    let collection = database.collection("data");
+    let room_collection = database.collection::<Document>("room_data");
     let user_id = ctx.author().id.0;
     let insert_struct = InsertStruct {
         id: bson::oid::ObjectId::new(),
@@ -246,8 +247,9 @@ pub async fn exit_room(
 ) -> Result<(), Error> {
     let mongodb_client = get_mongodb_tools().await;
 
-    let collection = mongodb_client.database("doxabot").collection::<Document>("data");
-    let room_collection = mongodb_client.database("doxabot").collection::<Document>("room_data");
+    let database = mongodb_client.database("doxabot");
+    let collection = database.collection::<Document>("data");
+    let room_collection = database.collection::<Document>("room_data");
     let user_id = ctx.author().id.0;
     let search_struct = SearchStruct {
         discord_id: user_id,
@@ -282,6 +284,58 @@ pub async fn exit_room(
         .content(returnvalue)
         .ephemeral(true)
     ).await?;
+
+    Ok(())
+}
+
+#[poise::command(slash_command)]
+pub async fn streamer(_: Context<'_>) -> Result<(), Error> {
+    // this is empty, because it is a parent slash command.
+    Ok(())
+}
+
+/// 스트리머를 추가하는 명령어
+#[poise::command(slash_command, rename = "add")]
+pub async fn add_streamer(
+    ctx: Context<'_>,
+    #[description = "추가할 스트리머"]
+    user: serenity::User
+) -> Result<(), Error> {
+    let mongodb_client = get_mongodb_tools().await;
+    let collection = mongodb_client.database("doxa-bot").collection::<Document>("streamer_data");
+
+    let search_struct = Streamer {
+        id: None,
+        user_id: user.id.0
+    };
+    let streamer_search_struct = Streamer {
+        id: None,
+        user_id: ctx.author().id.0
+    };
+
+    let (collection, _, existvalue) = mongoutil::is_exist(collection, mongoutil::bson_to_docs(&search_struct)).await;
+    let (_, _, streamervalue) = mongoutil::is_exist(collection, mongoutil::bson_to_docs(&streamer_search_struct)).await;
+    let returnvalue: String;
+
+    if !streamervalue {
+        ctx.send(|f| f
+            .content("당신은 스트리머가 아닌 것 같아요.")
+            .ephemeral(true)
+        ).await?;
+    } else {
+        if existvalue {
+            returnvalue = "이미 그 유저는 크루에 포함되어 있는 것 같아요.".to_string();
+        } else {
+            returnvalue = "크루에 새로운 사람이 들어왔어요!".to_string();
+        }
+    
+        ctx.send(|f| f
+            .content(returnvalue)
+            .ephemeral(true)
+        ).await?;
+    }
+    drop(search_struct);
+    drop(streamer_search_struct);
 
     Ok(())
 }

@@ -937,7 +937,7 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "poise"
 version = "0.1.0"
-source = "git+https://github.com/kangalioo/poise?branch=develop#bd3751a00ee938edf7f201d4e5592c77d7a57c05"
+source = "git+https://github.com/kangalioo/poise?branch=develop#34d5863d292bb220d0b24fdd5a12eb79081c268a"
 dependencies = [
  "async-trait",
  "derivative",
@@ -954,7 +954,7 @@ dependencies = [
 [[package]]
 name = "poise_macros"
 version = "0.1.0"
-source = "git+https://github.com/kangalioo/poise?branch=develop#bd3751a00ee938edf7f201d4e5592c77d7a57c05"
+source = "git+https://github.com/kangalioo/poise?branch=develop#34d5863d292bb220d0b24fdd5a12eb79081c268a"
 dependencies = [
  "darling 0.12.4",
  "proc-macro2",
@@ -1259,9 +1259,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "1.12.1"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "946fa04a8ac43ff78a1f4b811990afb9ddbdf5890b46d6dda0ba1998230138b7"
+checksum = "b827f2113224f3f19a665136f006709194bdfdcb1fdc1e4b2b5cbac8e0cced54"
 dependencies = [
  "rustversion",
  "serde",
@@ -1722,7 +1722,7 @@ dependencies = [
 [[package]]
 name = "useful-serenity"
 version = "0.1.4"
-source = "git+https://github.com/misilelab/UsefulSerenity#53788cb522bda702ee1701666c1b94ae3e335ebf"
+source = "git+https://github.com/misilelab/UsefulSerenity#5a138842dd1156d071a654408c68e2f23cf06439"
 dependencies = [
  "mongodb",
  "poise",
