@@ -19,10 +19,19 @@ async fn main() {
                     subcommands: vec![
                         create_room(),
                         join_room(),
-                        exit_room()
+                        exit_room(), 
+                        delete_room()
                     ],
                     ..room()
                 },
+                poise::Command {
+                    subcommands: vec![
+                        add_streamer(),
+                        streamer_list(),
+                    ],
+                    ..streamer()
+                },
+                exit_streamer()
             ],
             ..Default::default()
         })

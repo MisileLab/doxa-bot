@@ -30,7 +30,7 @@ pub struct RoomInsertStruct {
     pub creator_id: u64,
     pub name: String,
     pub description: String,
-    pub category: String
+    pub category: String,
 }
 
 #[derive(Serialize)]
@@ -38,7 +38,7 @@ pub struct RoomSearchStruct {
     pub room_id: u64
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Streamer {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<bson::oid::ObjectId>,
