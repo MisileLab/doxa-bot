@@ -137,7 +137,6 @@ pub async fn create_room(
         },
         Some(_) => {
             let mut room_id: u64 = 0;
-            let returnvalue: &str;
 
             let mut insert_struct = RoomInsertStruct {
                 id: bson::oid::ObjectId::new(),
@@ -166,7 +165,7 @@ pub async fn create_room(
                 drop(search_docs);
             }
             let insert_docs = mongoutil::bson_to_docs(&insert_struct);
-            returnvalue = match collection.insert_one(insert_docs, None).await {
+            let returnvalue: &str = match collection.insert_one(insert_docs, None).await {
                 Ok(_) => { "방이 만들어졌어요." },
                 Err(_) => { "잠시만, 이러면 안되는데.. <https://github.com/misilelab/doxa-bot/issues>에 문의해주실 수 있나요?" }
             };
@@ -318,21 +317,17 @@ pub async fn delete_room(
             ).await?;
         },
         Some(_) => {
-            let returnvalue: &str;
-
             let search_struct = RoomSearchStruct {
                 room_id
             };
-            match collection.find_one(mongoutil::bson_to_docs(&search_struct), None).await.unwrap_or(None) {
+            let returnvalue = match collection.find_one(mongoutil::bson_to_docs(&search_struct), None).await.unwrap_or(None) {
                 Some(doc) => {
-                    returnvalue = match collection.delete_one(doc, None).await {
-                        Ok(_) => { "방이 삭제되었어요." },
-                        Err(_) => { "잠시만, 이러면 안되는데.. <https://github.com/misilelab/doxa-bot/issues>에 문의해주실 수 있나요?" }
-                    };
+                    match collection.delete_one(doc, None).await {
+                        Ok(_) => "방이 삭제되었어요.",
+                        Err(_) => "잠시만, 이러면 안되는데.. <https://github.com/misilelab/doxa-bot/issues>에 문의해주실 수 있나요?"
+                    }
                 },
-                None => {
-                    returnvalue = "그런 방은 없는 것 같아요."
-                }
+                None => "그런 방은 없는 것 같아요."
             };
 
             drop(search_struct);
@@ -377,7 +372,7 @@ pub async fn add_streamer(
     let (collection, _, existvalue) = mongoutil::is_exist(collection, search_docs.clone()).await;
     let returnvalue: &str;
 
-    if streamervalue == false {
+    if !streamervalue {
         ctx.send(|f| f
             .content("당신은 스트리머가 아닌 것 같아요.")
             .ephemeral(true)
@@ -420,16 +415,15 @@ pub async fn streamer_list(ctx: Context<'_>) -> Result<(), Error> {
             for (i, i2) in search_datas.iter().enumerate() {
                 if i2.user_id != 338902243476635650 {
                     let inline = i % 2 != 0;
-                    let user_id = i2.user_id.clone();
-                    let user = match serenity::UserId(user_id.clone()).to_user(ctx.discord().http.clone()).await {
+                    let user_id = i2.user_id;
+                    let user = match serenity::UserId(user_id).to_user(ctx.discord().http.clone()).await {
                         Ok(user) => user,
                         Err(_) => serenity::User::default()
                     };
                     embeds.push((format!("스트리머 이름: {}", user.name), format!("디스코드 아이디: {}", user_id), inline));
                 }
             };
-            let multiple: &str;
-            if embeds.len() <= 0 { multiple = "" } else { multiple = "들" }
+            let multiple = if embeds.is_empty() { "" } else { "들" };
             drop(search_datas);
         
             ctx.send(|f| {
