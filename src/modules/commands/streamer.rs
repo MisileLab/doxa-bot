@@ -167,17 +167,19 @@ pub async fn create_room(
                 drop(search_docs);
             }
             let insert_docs = mongoutil::bson_to_docs(&insert_struct);
-            let returnvalue: &str = match collection.insert_one(insert_docs, None).await {
-                Ok(_) => { "방이 만들어졌어요." },
-                Err(_) => { "잠시만, 이러면 안되는데.. <https://github.com/misilelab/doxa-bot/issues>에 문의해주실 수 있나요?" }
-            };
             drop(insert_struct);
             drop(streamer_search_struct);
-            
-            ctx.send(|f| f
-                .content(returnvalue)
-                .ephemeral(true)
-            ).await?;
+            match collection.insert_one(insert_docs, None).await {
+                Ok(_) => { 
+                    ctx.send(|f| f
+                        .content("방에 들어가는 것을 성공했어요.")
+                        .ephemeral(true)
+                    ).await?;
+                },
+                Err(_) => {
+                    on_error(ctx).await;
+                }
+            };
             Ok(())
         }
     }
@@ -437,9 +439,7 @@ pub async fn streamer_list(ctx: Context<'_>) -> Result<(), Error> {
             }).await?;
         },
         Err(_) => {
-            ctx.send(|f| {
-                f.content("잠시만, 이러면 안되는데.. <https://github.com/misilelab/doxa-bot/issues>에 문의해주실 수 있나요?").ephemeral(true)
-            }).await?;
+            on_error(ctx).await;
         }
     };
     Ok(())
