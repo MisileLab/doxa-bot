@@ -5,7 +5,7 @@ mod modules;
 use poise::serenity_prelude as serenity;
 
 use modules::utilities::doxautil::read_user_from_file;
-use modules::commands::common::*;
+use modules::commands::{streamer::*, common::*};
 
 #[tokio::main]
 async fn main() {
@@ -31,7 +31,8 @@ async fn main() {
                     ],
                     ..streamer()
                 },
-                exit_streamer()
+                clear_message()
+                // exit_streamer()
             ],
             ..Default::default()
         })
