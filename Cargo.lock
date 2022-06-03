@@ -3,15 +3,6 @@
 version = 3
 
 [[package]]
-name = "MisileLib"
-version = "0.1.0"
-source = "git+https://github.com/misilelab/misilelib#14bebb03357931cdaf721bf0c96dffc9ff73db22"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -214,8 +205,8 @@ dependencies = [
 name = "doxa-bot"
 version = "0.1.0"
 dependencies = [
- "MisileLib",
  "futures",
+ "misile_lib",
  "poise",
  "serde",
  "tokio",
@@ -605,6 +596,15 @@ dependencies = [
  "log",
  "wasi 0.11.0+wasi-snapshot-preview1",
  "windows-sys",
+]
+
+[[package]]
+name = "misile_lib"
+version = "0.1.0"
+source = "git+https://github.com/misilelab/misilelib#2af036be2d7122573c07a285be2b6394f4b54008"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1103,9 +1103,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.18.2"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4903bf0427cf68dddd5aa6a93220756f8be0c34fcfa9f5e6191e103e15a31395"
+checksum = "0f392c8f16bda3456c0b00c6de39cb100449b98de55ac41c6cdd2bfcf53a1245"
 dependencies = [
  "bytes",
  "libc",
