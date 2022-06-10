@@ -2,7 +2,7 @@ use poise::serenity_prelude as serenity;
 
 use serde::Deserialize;
 
-use misilelib::read_user_from_file;
+use misilelib::read_config;
 
 use std::{fs::File, string::String};
 
@@ -19,7 +19,7 @@ struct Config {
 async fn main() {
     const GUILD_IDS: [u64; 1] = [965262302775509042];
     poise::Framework::build()
-        .token(read_user_from_file::<Config>(&File::open("config.json").unwrap()).unwrap().token)
+        .token(read_config::<Config>(&File::open("config.json").unwrap()).unwrap().token)
         .options(poise::FrameworkOptions {
             commands: vec![
                 clear_message()
