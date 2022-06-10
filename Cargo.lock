@@ -206,7 +206,7 @@ name = "doxa-bot"
 version = "0.1.0"
 dependencies = [
  "futures",
- "misile_lib",
+ "misilelib",
  "poise",
  "serde",
  "tokio",
@@ -599,9 +599,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "misile_lib"
+name = "misilelib"
 version = "0.1.0"
-source = "git+https://github.com/misilelab/misilelib#2af036be2d7122573c07a285be2b6394f4b54008"
+source = "git+https://github.com/misilelab/misilelib#50a0cbacaa14be78aff77a8b81711bd6eb2d44da"
 dependencies = [
  "serde",
  "serde_json",

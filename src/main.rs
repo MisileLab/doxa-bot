@@ -2,7 +2,7 @@ use poise::serenity_prelude as serenity;
 
 use serde::Deserialize;
 
-use misile_lib::read_user_from_file;
+use misilelib::read_user_from_file;
 
 use std::{fs::File, string::String};
 
